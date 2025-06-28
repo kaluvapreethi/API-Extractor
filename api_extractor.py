@@ -60,8 +60,36 @@ def save_to_json(data: dict, filename: str) -> None:\
     except IOError as e:\
         print(f"Error saving JSON file \{filename\}: \{e\}")\
 \
+def save_to_csv(data: dict, filename: str) -> None:\
+    """\
+    Extracts specific fields from the activity data and saves them to a CSV file.\
 \
+    Args:\
+        data (dict): The activity data dictionary.\
+        filename (str): The full path for the output CSV file.\
+    """\
+    # Define the fields you want to save to CSV\
+    # The order here determines the column order in the CSV\
+    fieldnames = ['activity', 'type', 'participants', 'price', 'accessibility', 'link', 'key']\
 \
+    # Ensure all fieldnames exist in the data dictionary to avoid KeyError\
+    # Provide a default value (e.g., None or empty string) if a key is missing\
+    row_data = \{field: data.get(field) for field in fieldnames\}\
+\
+    # Check if the file already exists to decide whether to write headers\
+    file_exists = os.path.exists(filename)\
+\
+    try:\
+        with open(filename, 'a', newline='', encoding='utf-8') as f: # 'a' for append mode\
+            writer = csv.DictWriter(f, fieldnames=fieldnames)\
+\
+            if not file_exists or os.stat(filename).st_size == 0: # Write header only if file is new or empty\
+                writer.writeheader()\
+            \
+            writer.writerow(row_data)\
+        print(f"Data successfully appended to CSV: \{filename\}")\
+    except IOError as e:\
+        print(f"Error saving CSV file \{filename\}: \{e\}")\
 \
 def main():\
     """\
@@ -85,7 +113,11 @@ def main():\
         json_output_path = os.path.join(OUTPUT_DIR, f"\{JSON_FILENAME_PREFIX\}_\{timestamp\}.json")\
         save_to_json(activity_data, json_output_path)\
 \
-\
+        # Save to CSV (appends to a single CSV file)\
+        csv_output_path = os.path.join(OUTPUT_DIR, f"\{CSV_FILENAME_PREFIX\}.csv")\
+        save_to_csv(activity_data, csv_output_path)\
+    else:\
+        print("Failed to fetch activity data. Exiting.")\
 \
 if __name__ == "__main__":\
     main()}
